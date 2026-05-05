@@ -52,7 +52,7 @@ def main():
 # ─────────────────────────────────────────
 
 def generate_totp(secret):
-    secret_bytes = secret.encode('ascii')          # ← ascii encoding
+    secret_bytes = secret.encode('ascii')
     T = int(time.time()) // 30
     T_bytes = struct.pack('>Q', T)
     hmac_hash = hmac.new(secret_bytes, T_bytes, hashlib.sha512).digest()
@@ -63,7 +63,7 @@ def generate_totp(secret):
 
 
 def generate_auth_header(email, totp):
-    credentials = f"{email}:{totp}"
+    credentials = f"{email}:totp={totp}"          # ← key=value format
     encoded = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
     return f"Basic {encoded}"
 
@@ -72,7 +72,7 @@ def submit_solution(email, totp):
     auth_header = generate_auth_header(email, totp)
 
     payload = {
-        "github_url": "https://github.com/Ishwarij032005/GlobalIntern",  # ← fixed
+        "github_url": "https://github.com/Ishwarij032005/GlobalIntern",
         "contact_email": email,
         "solution_language": "python"
     }
