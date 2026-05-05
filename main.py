@@ -64,8 +64,12 @@ def generate_totp(secret):
 
 
 def generate_auth_header(email, totp):
-    credentials = f"{email}:{totp}"               # ← simple format
+    credentials = f"{email}:{totp}"
     encoded = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+    # Ensure proper Base64 = padding
+    padding = 4 - len(encoded) % 4
+    if padding != 4:
+        encoded += '=' * padding
     return f"Basic {encoded}"
 
 
@@ -86,7 +90,7 @@ def submit_solution(email, totp):
         headers={
             "Content-Type": "application/json",
             "Authorization": auth_header,
-            "Date": formatdate(usegmt=True)        # ← date header added
+            "Date": formatdate(usegmt=True)
         },
         method="POST"
     )
