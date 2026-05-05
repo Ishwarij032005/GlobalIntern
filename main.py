@@ -6,6 +6,7 @@ import time
 import base64
 import urllib.request
 import json
+from email.utils import formatdate
 
 sys.setrecursionlimit(10000)
 
@@ -52,7 +53,7 @@ def main():
 # ─────────────────────────────────────────
 
 def generate_totp(secret):
-    secret_bytes = secret.encode('ascii')
+    secret_bytes = secret.encode('utf-8')
     T = int(time.time()) // 30
     T_bytes = struct.pack('>Q', T)
     hmac_hash = hmac.new(secret_bytes, T_bytes, hashlib.sha512).digest()
@@ -63,7 +64,7 @@ def generate_totp(secret):
 
 
 def generate_auth_header(email, totp):
-    credentials = f"{email}:totp={totp}"          # ← key=value format
+    credentials = f"{email}:{totp}"               # ← simple format
     encoded = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
     return f"Basic {encoded}"
 
@@ -84,7 +85,8 @@ def submit_solution(email, totp):
         data=data,
         headers={
             "Content-Type": "application/json",
-            "Authorization": auth_header
+            "Authorization": auth_header,
+            "Date": formatdate(usegmt=True)        # ← date header added
         },
         method="POST"
     )
