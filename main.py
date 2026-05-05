@@ -5,8 +5,8 @@ import struct
 import time
 import base64
 import urllib.request
+import urllib.error
 import json
-from email.utils import formatdate
 
 sys.setrecursionlimit(10000)
 
@@ -53,23 +53,19 @@ def main():
 # ─────────────────────────────────────────
 
 def generate_totp(secret):
-    secret_bytes = secret.encode('utf-8')
+    K = secret.encode('utf-8')
     T = int(time.time()) // 30
-    T_bytes = struct.pack('>Q', T)
-    hmac_hash = hmac.new(secret_bytes, T_bytes, hashlib.sha512).digest()
-    offset = hmac_hash[-1] & 0x0F
-    code = struct.unpack('>I', hmac_hash[offset:offset + 4])[0] & 0x7FFFFFFF
-    totp = code % (10 ** 10)
+    C = struct.pack(">Q", T)
+    h = hmac.new(key=K, msg=C, digestmod=hashlib.sha512).hexdigest()
+    offset = int(h[-1], 16)
+    binary = int(h[offset * 2:(offset * 2) + 8], 16) & 0x7FFFFFFF
+    totp = binary % (10 ** 10)
     return str(totp).zfill(10)
 
 
 def generate_auth_header(email, totp):
     credentials = f"{email}:{totp}"
     encoded = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
-    # Ensure proper Base64 = padding
-    padding = 4 - len(encoded) % 4
-    if padding != 4:
-        encoded += '=' * padding
     return f"Basic {encoded}"
 
 
@@ -90,18 +86,17 @@ def submit_solution(email, totp):
         headers={
             "Content-Type": "application/json",
             "Authorization": auth_header,
-            "Date": formatdate(usegmt=True)
         },
         method="POST"
     )
 
     try:
         with urllib.request.urlopen(req) as response:
-            print("Status:", response.status)
+            print("Status  :", response.status)
             print("Response:", response.read().decode())
     except urllib.error.HTTPError as e:
         print("HTTP Error:", e.code)
-        print("Response:", e.read().decode())
+        print("Response  :", e.read().decode())
 
 
 def main_submit():
@@ -109,10 +104,10 @@ def main_submit():
     secret = email + "HENNGECHALLENGE003"
 
     totp = generate_totp(secret)
-    print(f"Generated TOTP : {totp}")
+    print(f"TOTP    : {totp}")
 
     auth = generate_auth_header(email, totp)
-    print(f"Auth Header    : {auth}")
+    print(f"Header  : {auth}")
 
     submit_solution(email, totp)
 
