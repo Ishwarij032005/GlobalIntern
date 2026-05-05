@@ -55,7 +55,10 @@ def generate_totp(secret):
     secret_bytes = secret.encode('utf-8')
     T = int(time.time()) // 30
     T_bytes = struct.pack('>Q', T)
+    
+    # Must use HMAC-SHA512
     hmac_hash = hmac.new(secret_bytes, T_bytes, hashlib.sha512).digest()
+    
     offset = hmac_hash[-1] & 0x0F
     code = struct.unpack('>I', hmac_hash[offset:offset + 4])[0] & 0x7FFFFFFF
     totp = code % (10 ** 10)
