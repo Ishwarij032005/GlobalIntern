@@ -72,7 +72,7 @@ def submit_solution(email, totp):
     auth_header = generate_auth_header(email, totp)
 
     payload = {
-        "github_url": "https://github.com/YOUR_USERNAME/YOUR_REPO",  # ← CHANGE THIS
+        "github_url": "https://github.com/Ishwarij032005/GlobalIntern/tree/main",  # ← CHANGE THIS
         "contact_email": email,
         "solution_language": "python"
     }
